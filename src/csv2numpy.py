@@ -42,11 +42,19 @@ def raw_parse(data):
     for i, c in enumerate(cardinal):
         idx_c = np.where(df_np == c)
         df_np[idx_c] = i + 1
-    print(df_np.shape)
-    print(
+
+    gps_time = list(Time(df_np[1:, 0], format="isot").gps - np.min(
         Time(df_np[1:, 0], format="isot").gps
-        - np.min(Time(df_np[1:, 0], format="isot").gps)
-    )
+    ))
+    gps_time = ["GPSTIME"] + gps_time
+
+    month = ["Date"] + [int(i.split("-")[1]) for i in df_np[1:, 0]]
+
+    data = np.c_[np.array(gps_time), np.array(month), df_np[:, 1:]]
+
+
+    print(data)
+
     return
 
 
@@ -66,7 +74,6 @@ if __name__ == "__main__":
     data = "../data/weatherAUS.csv"
     raw_parse(data)
 
-#     weather_np = csv2np(data)
+    #     weather_np = csv2np(data)
 
-    lat, lon = geo_location("Melbourne")
-    print(lat, lon)
+    #  lat, lon = geo_location("Melbourne")
