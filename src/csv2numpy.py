@@ -1,21 +1,23 @@
 import numpy as np
 import pandas as pd
+from astropy.time import Time
 
+def raw_parse(data):
+    data_list=[]
+    with open(data,'r') as f:
+        for line in f.readlines():
+            dat = line[:-1].split(',')
+            if 'NA' not in dat:
+                data_list.append(dat)
 
-def csv2np(data):
-
-    df = pd.read_csv(data)
-    df["Date"] = pd.to_datetime(df["Date"])
-
-    df_np = df[df["Location"] == "Uluru"].to_numpy()
+    df_np =  np.array(data_list) 
+    
 
     idx_no = np.where(df_np == "No")
     idx_yes = np.where(df_np == "Yes")
-    idx_nan = np.where(df_np == "nan")
 
     df_np[idx_no] = False
     df_np[idx_yes] = True
-    df_np[idx_nan] = np.nan
 
     cardinal = [
         "N",
@@ -39,14 +41,13 @@ def csv2np(data):
     for i, c in enumerate(cardinal):
         idx_c = np.where(df_np == c)
         df_np[idx_c] = i + 1
-
-    return df_np
-
+    print( df_np.shape )
+    print( Time(df_np[1:,0],format='isot').gps - np.min(Time(df_np[1:,0], format='isot').gps) )
+    return
 
 if __name__ == "__main__":
     data = "../data/weatherAUS.csv"
+    raw_parse(data)
 
-    weather_np = csv2np(data)
-    print(
-        weather_np[0]
-    )
+#     weather_np = csv2np(data)
+    
