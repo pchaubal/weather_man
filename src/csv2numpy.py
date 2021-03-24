@@ -5,7 +5,7 @@ def csv2np(data):
 
     df = pd.read_csv(data)
     df['Date'] = pd.to_datetime(df['Date'])
-#     print( df.head() )
+    print(df[ df['Location']=='Uluru'] )
 
     return df.to_numpy()
 
