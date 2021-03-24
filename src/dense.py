@@ -35,7 +35,7 @@ tfk = tf.keras
 FLAGS = flags.FLAGS
 
 #MODEL_DIR = "/global/cscratch1/sd/bthorne/NeuralBoltzmann"
-DATA_DIR = Path(os.environ["NEURALBOLTZMANN_DATA_DIR"])
+# DATA_DIR = Path(os.environ["NEURALBOLTZMANN_DATA_DIR"])
 
 @gin.configurable
 def BuildDenseNetwork(input_dim, output_dim, units, activation='relu', dropout_rate=0.5):
