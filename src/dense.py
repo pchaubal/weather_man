@@ -24,8 +24,6 @@ from matplotlib.lines import Line2D
 # cmap = mpl.cm.get_cmap(string_cmap)
 # mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=[cmap(0.2), "k", "red"]) 
 
-from datasets import LoadDataset, CAMBPowerspectrum
-from plot_eval import Eval
 
 plt.rcParams['text.usetex'] = True
 
@@ -35,7 +33,6 @@ tfk = tf.keras
 FLAGS = flags.FLAGS
 
 #MODEL_DIR = "/global/cscratch1/sd/bthorne/NeuralBoltzmann"
-# DATA_DIR = Path(os.environ["NEURALBOLTZMANN_DATA_DIR"])
 
 @gin.configurable
 def BuildDenseNetwork(input_dim, output_dim, units, activation='relu', dropout_rate=0.5):
@@ -48,9 +45,10 @@ def BuildDenseNetwork(input_dim, output_dim, units, activation='relu', dropout_r
     return tfk.Model(inputs=inputs, outputs=x_)
 
 @gin.configurable
-def Train(model, x_train, y_train, val_data=None, batch_size=100, epochs=10, learning_rate=1e-3, loss=tfk.losses.MSE):
+def Train(model, x_train, y_train, val_data=None, batch_size=50, epochs=10, learning_rate=1e-5, loss=tfk.losses.MSE):
     optimizer = tf.optimizers.Adam(learning_rate=learning_rate)
-    model.compile(optimizer=optimizer, loss=loss)
+    model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy',
+            metrics=["categorical_accuracy"])
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_data=val_data, shuffle=True)
     return model 
 
@@ -71,8 +69,6 @@ def main(argv):
     results_dir.mkdir(exist_ok=True, parents=True)
 
     # set data directory
-    data_dir = DATA_DIR / stem
-    data_dir.mkdir(exist_ok=True, parents=True)
 
     # parse configuration and lock it in
     logging.debug(f"Using Gin config {config_path}")
@@ -80,12 +76,9 @@ def main(argv):
     logging.debug(gin.config_str())
 
     # setup checkpointing
-    checkpoint_filepath = DATA_DIR / stem / "checkpoints" / "checkpoint"
-    checkpoint_filepath.parent.mkdir(exist_ok=True, parents=True)
+    checkpoint_filepath ='./checkpoints' 
 
     # setup hyperparameter search directory
-    hyper_filepath = DATA_DIR / stem / "hyperparameters" / "bayesianoptimization"
-    hyper_filepath.parent.mkdir(exist_ok=True, parents=True)
 
     # The following is intended to be structured in a way that we do not need
     # to keep retraining networks, or recomputing large sets of spectra, during
@@ -94,16 +87,19 @@ def main(argv):
     # Save and reload for next applications.
     
     # These datasets are used in many different tasks so just unpack here.
-    dset = LoadDataset()
-    (x_train, y_train) = dset["train"]
-    (x_val, y_val) = dset["val"]
-    (x_test, y_test) = dset["test"]
-    (raw_x_test, raw_y_test) = dset["raw_test"]
+    dset = np.loadtxt('./data/refined_data.txt') 
+    print( dset.shape)
+    n_train = 40_000
+    n_test = 8000
+    (x_train, y_train) = dset[:n_train,:-1], dset[:n_train,-1:]
+    val = (dset[:n_test,:-1], dset[:n_test,-1:])
+#     (x_test, y_test) = dset["test"]
+#     (raw_x_test, raw_y_test) = dset["raw_test"]
 
     # do training of NN
     if FLAGS.mode == "train":
         model = BuildDenseNetwork()
-        model = Train(model, x_train, y_train, val_data=dset["test"])
+        model = Train(model, x_train, y_train, val_data=val)
         model.save(str(checkpoint_filepath))
 
     # Load a previously defined model and make plots 
@@ -117,6 +113,6 @@ def main(argv):
 if __name__ == "__main__":
     flags.DEFINE_enum("mode", "train", ["train", "eval"], "Mode in which to run script.")
     flags.DEFINE_string("results_dir", "./results", "Path to results directory where plots will be saved.")
-    flags.DEFINE_string("config_file", "./configs/dense_128_tt.gin", "Path to configuration file.")
+    flags.DEFINE_string("config_file", "./congifs/dense_128.gin", "Path to configuration file.")
     flags.DEFINE_boolean('debug', False, 'Produces debugging output.')
     app.run(main)
