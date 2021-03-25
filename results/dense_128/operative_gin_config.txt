@@ -1,0 +1,17 @@
+# Macros:
+# ==============================================================================
+output_dim = 1
+
+# Parameters for BuildDenseNetwork:
+# ==============================================================================
+BuildDenseNetwork.activation = 'relu'
+BuildDenseNetwork.dropout_rate = 0.1
+BuildDenseNetwork.input_dim = 24
+BuildDenseNetwork.output_dim = %output_dim
+BuildDenseNetwork.units = [128, 256, 512, 1024]
+
+# Parameters for Train:
+# ==============================================================================
+Train.batch_size = 1000
+Train.epochs = 5
+Train.learning_rate = 0.001

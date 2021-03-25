@@ -1,5 +1,5 @@
 # A 'default' setting with a loss function not weighted by cosmic variance.
-output_dim = 2
+output_dim = 1
 
 BuildDenseNetwork.input_dim = 24 
 BuildDenseNetwork.output_dim = %output_dim
@@ -7,5 +7,5 @@ BuildDenseNetwork.units = [128, 256, 512, 1024]
 BuildDenseNetwork.dropout_rate = 0.1
 
 
-Train.epochs = 20
+Train.epochs = 5
 Train.batch_size = 100

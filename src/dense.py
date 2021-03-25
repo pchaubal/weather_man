@@ -45,10 +45,10 @@ def BuildDenseNetwork(input_dim, output_dim, units, activation='relu', dropout_r
     return tfk.Model(inputs=inputs, outputs=x_)
 
 @gin.configurable
-def Train(model, x_train, y_train, val_data=None, batch_size=50, epochs=10, learning_rate=1e-5, loss=tfk.losses.MSE):
+def Train(model, x_train, y_train, val_data=None, batch_size=100, epochs=10, learning_rate=1e-3, loss=tfk.losses.MSE):
     optimizer = tf.optimizers.Adam(learning_rate=learning_rate)
-    model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy',
-            metrics=["categorical_accuracy"])
+    model.compile(optimizer=optimizer, loss='binary_crossentropy',
+            metrics="accuracy")
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_data=val_data, shuffle=True)
     return model 
 
@@ -89,10 +89,12 @@ def main(argv):
     # These datasets are used in many different tasks so just unpack here.
     dset = np.loadtxt('./data/refined_data.txt') 
     print( dset.shape)
+    np.random.shuffle(dset)
+    print( dset.shape)
     n_train = 40_000
     n_test = 8000
     (x_train, y_train) = dset[:n_train,:-1], dset[:n_train,-1:]
-    val = (dset[:n_test,:-1], dset[:n_test,-1:])
+    val = (dset[n_train:n_train+n_test,:-1], dset[n_train:n_train + n_test,-1:])
 #     (x_test, y_test) = dset["test"]
 #     (raw_x_test, raw_y_test) = dset["raw_test"]
 
